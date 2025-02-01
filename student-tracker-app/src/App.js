@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import StudentRegistrationForm from './pages/StudentRegistrationForm'
+import Dashboard from './pages/Dashboard'  // added import
 
 function App() {
-  const [page, setPage] = useState('registration')
+  // Set default page to "dashboard" so it becomes the homepage
+  const [page, setPage] = useState('dashboard')
   const [students, setStudents] = useState([])
   const [search, setSearch] = useState('')
   const [modalStudent, setModalStudent] = useState(null)
@@ -72,7 +74,16 @@ function App() {
     )
   }
 
-  return page === 'registration' ? renderRegistrationPage() : renderStudentDataPage()
+  return (
+    <>
+      {page === 'dashboard'
+        ? <Dashboard setPage={setPage} />  // render dashboard as homepage 
+        : page === 'registration'
+          ? renderRegistrationPage()
+          : renderStudentDataPage()
+      }
+    </>
+  )
 }
 
 export default App
