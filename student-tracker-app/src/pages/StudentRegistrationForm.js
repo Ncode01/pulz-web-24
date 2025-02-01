@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { TextField, Button, IconButton } from '@mui/material'
+import { TextField, Button, IconButton, CircularProgress } from '@mui/material'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import { motion } from 'framer-motion'
 import { ToastContainer, toast } from 'react-toastify'
@@ -9,6 +9,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import { useDropzone } from 'react-dropzone'
 import Select from 'react-select'
 import 'tailwindcss/tailwind.css'
+import Confetti from 'react-confetti' // Or use emoji-mart if preferred
 
 const gradeOptions = Array.from({ length: 8 }, (_, i) => ({
   value: i + 6,
@@ -16,6 +17,8 @@ const gradeOptions = Array.from({ length: 8 }, (_, i) => ({
 }))
 
 function StudentRegistrationForm() {
+  const [loading, setLoading] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -32,8 +35,13 @@ function StudentRegistrationForm() {
       phone: Yup.string().matches(/^\d{10,}$/, 'Phone must be at least 10 digits').required('Required'),
     }),
     onSubmit: (values, { resetForm }) => {
-      toast.success("Registration successful!")
-      resetForm()
+      setLoading(true)
+      // Simulate API call
+      setTimeout(() => {
+        setLoading(false)
+        toast.success("Registration successful!")
+        resetForm()
+      }, 1500)
     }
   })
 
@@ -46,11 +54,37 @@ function StudentRegistrationForm() {
       formik.setFieldValue('photo', file)
     }
   }
-
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    accept: {'image/jpeg': [], 'image/png': []}
+    accept: { 'image/jpeg': [], 'image/png': [] }
   })
+
+  // Custom animated styles for React Select
+  const selectStyles = {
+    control: (provided) => ({
+      ...provided,
+      background: 'rgba(255,255,255,0.1)',
+      borderColor: 'rgba(255,255,255,0.2)',
+      transition: 'all 300ms',
+    }),
+    menu: (provided) => ({
+      ...provided,
+      animation: 'slideDown 300ms ease',
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: '#ffffff'
+    })
+  }
+
+  // Custom handler for name field blur to trigger confetti and shake
+  const handleNameBlur = e => {
+    formik.handleBlur(e)
+    if (formik.errors.name) {
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 1000)
+    }
+  }
 
   return (
     <motion.div
@@ -60,7 +94,8 @@ function StudentRegistrationForm() {
       transition={{ duration: 0.5 }}
     >
       <motion.div
-        className="w-[600px] p-8 rounded-[16px] bg-[rgba(0,0,0,0.8)] backdrop-blur-md shadow-[8px_8px_16px_rgba(0,0,0,0.5),-8px_-8px_16px_rgba(255,215,0,0.1)]"
+        className="w-[600px] p-8 rounded-[16px] bg-[rgba(0,0,0,0.8)] shadow-[8px_8px_16px_rgba(0,0,0,0.5),-8px_-8px_16px_rgba(255,215,0,0.1)]"
+        style={{ backdropFilter: 'blur(20px)' }}
         animate={{ y: [0, -10, 0] }}
         transition={{ repeat: Infinity, duration: 3 }}
       >
@@ -73,21 +108,41 @@ function StudentRegistrationForm() {
           Register a New Student
         </motion.h1>
         <form onSubmit={formik.handleSubmit} className="space-y-6">
-          {/* Name Field using Material-UI TextField */}
+          {/* Name Field with shake and emoji confetti on error */}
           <div>
-            <TextField
-              fullWidth
-              label="Name"
-              variant="outlined"
-              name="name"
-              value={formik.values.name}
-              onChange={formik.handleChange}
-              error={Boolean(formik.touched.name && formik.errors.name)}
-              helperText={formik.touched.name && formik.errors.name}
-              InputProps={{ style: { background: 'rgba(255,255,255,0.1)', color: '#ffffff' } }}
-            />
+            <motion.div
+              animate={formik.touched.name && formik.errors.name ? { x: [0, -10, 10, -10, 10, 0] } : {}}
+            >
+              <TextField
+                fullWidth
+                label="Name"
+                variant="outlined"
+                name="name"
+                value={formik.values.name}
+                onChange={formik.handleChange}
+                onBlur={handleNameBlur}
+                error={Boolean(formik.touched.name && formik.errors.name)}
+                helperText={(formik.touched.name && formik.errors.name) || ''}
+                InputProps={{
+                  style: { background: 'rgba(255,255,255,0.1)', color: '#ffffff' }
+                }}
+                InputLabelProps={{
+                  style: { color: formik.touched.name && !formik.errors.name ? '#ffd700' : '#1e90ff' }
+                }}
+              />
+              {showConfetti && (
+                <motion.div
+                  initial={{ opacity: 1, y: 0 }}
+                  animate={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 1 }}
+                  style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}
+                >
+                  <span style={{ fontSize: 24 }}>💥 ❌ 🤯</span>
+                </motion.div>
+              )}
+            </motion.div>
           </div>
-          {/* Email Field */}
+          {/* ...existing code for Email, Phone fields with similar InputLabelProps... */}
           <div>
             <TextField
               fullWidth
@@ -96,12 +151,15 @@ function StudentRegistrationForm() {
               name="email"
               value={formik.values.email}
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               error={Boolean(formik.touched.email && formik.errors.email)}
-              helperText={formik.touched.email && formik.errors.email}
+              helperText={(formik.touched.email && formik.errors.email) || ''}
               InputProps={{ style: { background: 'rgba(255,255,255,0.1)', color: '#ffffff' } }}
+              InputLabelProps={{
+                style: { color: formik.touched.email && !formik.errors.email ? '#ffd700' : '#1e90ff' }
+              }}
             />
           </div>
-          {/* Phone Field */}
           <div>
             <TextField
               fullWidth
@@ -110,27 +168,23 @@ function StudentRegistrationForm() {
               name="phone"
               value={formik.values.phone}
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               error={Boolean(formik.touched.phone && formik.errors.phone)}
-              helperText={formik.touched.phone && formik.errors.phone}
+              helperText={(formik.touched.phone && formik.errors.phone) || ''}
               InputProps={{ style: { background: 'rgba(255,255,255,0.1)', color: '#ffffff' } }}
+              InputLabelProps={{
+                style: { color: formik.touched.phone && !formik.errors.phone ? '#ffd700' : '#1e90ff' }
+              }}
             />
           </div>
-          {/* Grade Field using React Select */}
+          {/* Grade Field using React Select with custom animated styles */}
           <div>
             <label className="block text-[14px] font-medium text-[#1e90ff] mb-2">Grade</label>
             <Select
               options={gradeOptions}
               value={formik.values.grade}
               onChange={option => formik.setFieldValue('grade', option)}
-              styles={{
-                control: (provided) => ({
-                  ...provided,
-                  background: 'rgba(255,255,255,0.1)',
-                  borderColor: 'rgba(255,255,255,0.2)',
-                  color: '#ffffff'
-                }),
-                singleValue: (provided) => ({ ...provided, color: '#ffffff' })
-              }}
+              styles={selectStyles}
             />
           </div>
           {/* Achievements Field */}
@@ -145,6 +199,9 @@ function StudentRegistrationForm() {
               multiline
               minRows={2}
               InputProps={{ style: { background: 'rgba(255,255,255,0.1)', color: '#ffffff' } }}
+              InputLabelProps={{
+                style: { color: '#1e90ff' }
+              }}
             />
           </div>
           {/* Creative Image Section: React Dropzone */}
@@ -165,23 +222,20 @@ function StudentRegistrationForm() {
               )}
             </div>
           </div>
-          {/* Interactive Buttons */}
+          {/* Interactive Buttons with loading spinner and reset */}
           <div className="flex flex-col gap-4">
             <Button
               fullWidth
               type="submit"
               variant="contained"
               style={{ backgroundColor: '#1e90ff', height: 48, borderRadius: 8, fontSize: 16, fontWeight: 500 }}
-              whileHover={{ scale: 1.02 }}
               component={motion.button}
+              whileHover={{ scale: 1.02 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
-              Submit
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
             </Button>
-            <IconButton
-              onClick={() => formik.resetForm()}
-              style={{ color: '#ffd700' }}
-            >
+            <IconButton onClick={() => formik.resetForm()} style={{ color: '#ffd700' }}>
               <RefreshIcon />
             </IconButton>
           </div>

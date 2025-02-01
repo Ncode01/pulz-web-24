@@ -27,7 +27,8 @@
     "yup": "^1.0.0",
     "@mui/material": "^5.11.0",
     "@emotion/react": "^11.10.4",
-    "@emotion/styled": "^11.10.4"
+    "@emotion/styled": "^11.10.4",
+    "react-confetti": "^6.1.0"
   },
   "devDependencies": {
     "react-scripts": "^5.0.1"
