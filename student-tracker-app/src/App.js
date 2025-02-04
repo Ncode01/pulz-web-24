@@ -1,32 +1,31 @@
-import React, { useState, useEffect } from 'react'
-import StudentRegistrationForm from './pages/StudentRegistrationForm'
-import Dashboard from './pages/Dashboard'  // added import
+import React, { useState, useEffect } from 'react';
+import StudentRegistrationForm from './pages/StudentRegistrationForm.jsx';
+import Dashboard from './pages/Dashboard';
 
 function App() {
-  // Set default page to "dashboard" so it becomes the homepage
-  const [page, setPage] = useState('dashboard')
-  const [students, setStudents] = useState([])
-  const [search, setSearch] = useState('')
-  const [modalStudent, setModalStudent] = useState(null)
+  const [page, setPage] = useState('dashboard');
+  const [students, setStudents] = useState([]);
+  const [search, setSearch] = useState('');
+  const [modalStudent, setModalStudent] = useState(null);
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem('students')) || []
-    setStudents(data)
-  }, [page === 'data'])
+    const data = JSON.parse(localStorage.getItem('students')) || [];
+    setStudents(data);
+  }, [page === 'data']);
 
   const handleDelete = (id) => {
-    const updated = students.filter(s => s.id !== id)
-    setStudents(updated)
-    localStorage.setItem('students', JSON.stringify(updated))
-  }
+    const updated = students.filter(s => s.id !== id);
+    setStudents(updated);
+    localStorage.setItem('students', JSON.stringify(updated));
+  };
 
   const renderRegistrationPage = () => (
-    <StudentRegistrationForm />
-  )
+    <StudentRegistrationForm setPage={setPage} />
+  );
 
   const renderStudentDataPage = () => {
     const filteredStudents = students.filter(s =>
-      s.name.toLowerCase().includes(search.toLowerCase()) || s.id.includes(search))
+      s.name.toLowerCase().includes(search.toLowerCase()) || s.id.includes(search));
     return (
       <div className="min-h-screen bg-[#121212] text-white p-8">
         <div className="flex justify-between items-center mb-6">
@@ -71,19 +70,19 @@ function App() {
           </div>
         )}
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <>
       {page === 'dashboard'
-        ? <Dashboard setPage={setPage} />  // render dashboard as homepage 
+        ? <Dashboard setPage={setPage} />
         : page === 'registration'
           ? renderRegistrationPage()
           : renderStudentDataPage()
       }
     </>
-  )
+  );
 }
 
-export default App
+export default App;

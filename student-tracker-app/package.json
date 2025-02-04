@@ -28,7 +28,9 @@
     "@mui/material": "^5.11.0",
     "@emotion/react": "^11.10.4",
     "@emotion/styled": "^11.10.4",
-    "react-confetti": "^6.1.0"
+    "react-confetti": "^6.1.0",
+    "react-chartjs-2": "^4.3.1",
+    "chart.js": "^4.2.1"
   },
   "devDependencies": {
     "react-scripts": "^5.0.1"

@@ -8,4 +8,7 @@ cd student-tracker-app
 npm install
 set NODE_OPTIONS=--openssl-legacy-provider
 npm start
-pause
+
+npm install
+npm run dev
+
